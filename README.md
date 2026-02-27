@@ -2,6 +2,7 @@
 ### *Multimodal 24h ICU Model*
 
 This project builds an early ICU risk model to predict in-hospital mortality for ICU patients using the MIMIC-III dataset. We use the first 24 hours after ICU admission ([intime, intime + 24h)) and combine:
+
 	•	Structured features: 24h vitals + labs (aggregated statistics)
 	•	Unstructured text: 24h nursing notes encoded with Bio_ClinicalBERT (768-D embeddings)
 

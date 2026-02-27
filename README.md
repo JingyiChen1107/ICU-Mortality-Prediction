@@ -1,12 +1,23 @@
-# Predicting In-Hospital Mortality using MIMIC-III Data
+# Predicting In-Hospital Mortality using MIMIC-III Data 
+### *Multimodal 24h ICU Model*
 
-This is a machine learning project that builds a model to predict in-hospital mortality for patients in the Intensive Care Unit (ICU), based on the MIMIC-III dataset.
+This project builds an early ICU risk model to predict in-hospital mortality for ICU patients using the MIMIC-III dataset. We use the first 24 hours after ICU admission ([intime, intime + 24h)) and combine:
+	•	Structured features: 24h vitals + labs (aggregated statistics)
+	•	Unstructured text: 24h nursing notes encoded with Bio_ClinicalBERT (768-D embeddings)
 
-The final **XGBoost model** achieved a **93% accuracy** and **0.88 AUC** on the test set, demonstrating a strong balance between precision and recall for the imbalanced dataset.
+The evaluation uses patient-level group splitting (SUBJECT_ID) to avoid leakage across multiple ICU stays per patient, and reports both discrimination and calibration metrics (AUROC, AUPRC, Brier, ECE).
 
-- **Authors:** Jingyi(Jenny) Chen, Yien(Martina) Chen, Nuonan(Juana) Zhang
-- **Full Report:** [`/report/predict_mortality.pdf`](./report/predict_mortality.pdf)
+- **Authors:** Jingyi(Jenny) Chen
+- **Full Report:** [/report/predict_mortality.pdf](./report/predict_mortality.pdf)
 
+  
+- ** Key Highlights **
+
+* **Multimodal Fusion:** Combines time-series vitals/labs with NLP-based nursing note embeddings.
+* **Clinical-Specific NLP:** Leverages `Bio_ClinicalBERT` for specialized medical text representation (768-D).
+* **Robust Evaluation:** Implements **Patient-level Group Splitting** (`SUBJECT_ID`) to prevent data leakage—ensuring the model generalizes to new patients.
+* **Interpretability:** Uses **SHAP** values to decode model decisions for clinical transparency.
+  
 ---
 
 ## View the Reports (HTML)
@@ -20,57 +31,69 @@ For easy viewing, the rendered HTML reports for each step are available in the `
 
 ---
 
-## 1. Project Objective
+## 📊 Methodology & Tech Stack
 
-The goal was to develop a robust classification model to identify high-risk patients. This is crucial for clinical decision support and resource allocation in critical care. The primary challenge was handling the **highly imbalanced dataset** (more survivors than non-survivors).
+### 1. Data Pipeline
+* **Cohort Construction:** Built a master cohort anchored at `ICUSTAY_ID` by merging ICUSTAYS, ADMISSIONS, and PATIENTS tables.
+* **Structured Engineering:** Aggregating 24h vitals (`CHARTEVENTS`) and labs (`LABEVENTS`) using statistics (mean, min, max, std, count).
+* **Unstructured NLP:** Nursing notes aligned to the first 24h, processed via a sliding window + mean-pooling through **Bio_ClinicalBERT**.
 
-## 2. Tech Stack
+### 2. Tech Stack
+* **Modeling:** `XGBoost`, `Scikit-learn`
+* **Deep Learning/NLP:** `PyTorch`, `Hugging Face Transformers`
+* **Analytics:** `Pandas`, `NumPy`, `Matplotlib`, `SHAP`
 
-- **Data Analysis:** Python, Pandas, NumPy
-- **Modeling:** Scikit-learn, XGBoost
-- **Visualization:** Matplotlib, Seaborn
+---
 
-## 3. Methodology
+## 📈 Key Results
 
-1.  **Data Preprocessing:** Merged and cleaned data from 7 different MIMIC-III tables. Handled extreme outliers (e.g., age > 100), missing values, and skewed distributions.
-2.  **Feature Engineering:** Simplified high-cardinality categorical features (like `language`, `religion`) and applied One-Hot Encoding. Standardized continuous features.
-3.  **Model Comparison:** Evaluated three models, focusing on **Recall** and **F1-Score** for the minority class (class 1: non-survivors).
+The multimodal approach consistently outperforms the structured-only model, especially in calibration and cases where clinical notes are rich.
 
-## 4. Key Results (Model Comparison)
-
-| Model | AUC | Minority (1) Precision | Minority (1) Recall | Minority (1) F1-Score |
+### 1. Overall Performance (Full Cohort)
+| Setting | AUROC | AUPRC | Brier Score | ECE (Calibration) |
 | :--- | :---: | :---: | :---: | :---: |
-| Logistic Regression | 0.85 | 0.26 | **0.80** | 0.39 |
-| Random Forest | **0.89** | **0.69** | 0.45 | 0.54 |
-| **XGBoost (Selected)** | 0.88 | 0.67 | 0.49 | **0.57** |
+| **Structured Only** | 0.8984 | 0.6126 | 0.0631 | 0.0114 |
+| **Multimodal (Fusion)** | **0.9017** | **0.6228** | **0.0622** | **0.0087** |
 
-**Conclusion:** XGBoost provided the best balance, significantly reducing the "false alarms" of Logistic Regression and improving on the Random Forest's ability to identify high-risk patients.
+> **Insight:** Adding ClinicalBERT embeddings provides a significant boost in **Calibration (ΔECE -23.6%)**, making the predicted probabilities far more reliable for real-world clinical decision-making.
 
-## 5. How to Replicate
+### 2. Text-Available Subset (59.6% of stays)
+When early nursing notes are present, the multimodal gains are substantially amplified.
+| Setting | AUROC | AUPRC | Brier Score | ECE |
+| :--- | :---: | :---: | :---: | :---: |
+| Structured Only | 0.9106 | 0.6238 | 0.0597 | 0.0101 |
+| **Multimodal (Fusion)** | **0.9206** | **0.6602** | **0.0563** | 0.0113 |
 
-1.  **Code:** The full analysis is available in the Jupyter Notebooks in the `/code/` folder.
-2.  **Data:** The project uses the [MIMIC-III dataset](https://physionet.org/content/mimiciii/1.4/), which requires access permission from PhysioNet. The code assumes the raw data tables are available.
+> **Key Insights:** > * **Multimodal Lift:** In the text-available subset, adding ClinicalBERT embeddings yields a significant boost (**+3.64% AUPRC** and **+1.00% AUROC**).
+> * **Clinical Reliability:** The multimodal model consistently improves calibration (ECE) across the full cohort, ensuring that predicted mortality probabilities align closely with actual clinical outcomes.
 
-## 6. Repository Structure
+## Repository Structure
 
 ```
 .
-├── /code/
-│   ├── 01_1_VASOPRESSOR_USE_flag.ipynb
-│   ├── 01_2_ventilation__flag.ipynb
-│   ├── 01_3_data aggregation.ipynb
-│   ├── 02_data_cleaning.ipynb
-│   ├── 03_EDA.ipynb
-│   └── 04_Feature_Selection_and_Engineering.ipynb
-│   └── 05_Modeling_and_Experiments.ipynb            
-├── /html_reports/
-│   ├── 01_1_VASOPRESSOR_USE_flag.html
-│   ├── 01_2_ventilation__flag.html
-│   ├── 02_data_cleaning.html
-│   ├── 03_EDA.html
-│   └── 04_Feature_Selection_and_Engineering.html
-│   └── 05_Modeling_and_Experiments.html   
-├── /report/
+├── notebooks/
+│   ├── 01_build_cohort.ipynb
+│   ├── 02_vitals_24h.ipynb
+│   ├── 03_labs_24h.ipynb
+│   ├── 04_notes_24h.ipynb
+│   ├── 05_clinbert_embeddings.ipynb
+│   ├── 06_structured_modeling.ipynb
+│   ├── 07_multimodal_modeling.ipynb
+│   └── 08_shap.ipynb
+├── figures/
+│   ├── roc_overall.png
+│   ├── pr_overall.png
+│   ├── calib_overall.png
+│   ├── pr_has_text1.png
+│   ├── calib_has_text1.png
+│   ├── shap_bar.png
+│   └── shap_beeswarm.png
+├── report/
 │   └── predict_mortality.pdf
-└── README.md               
+├── requirements.txt
+└── README.md     
 ```
+## How to Replicate
+
+1.  **Code:** The full analysis is available in the Jupyter Notebooks in the `/code/` folder.
+2.  **Data:** The project uses the [MIMIC-III dataset](https://physionet.org/content/mimiciii/1.4/), which requires access permission from PhysioNet. The code assumes the raw data tables are available.

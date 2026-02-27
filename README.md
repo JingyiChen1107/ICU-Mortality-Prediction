@@ -71,15 +71,15 @@ When early nursing notes are present, the multimodal gains are substantially amp
 
 ```
 .
-├── notebooks/
-│   ├── 01_build_cohort.ipynb
-│   ├── 02_vitals_24h.ipynb
-│   ├── 03_labs_24h.ipynb
-│   ├── 04_notes_24h.ipynb
-│   ├── 05_clinbert_embeddings.ipynb
-│   ├── 06_structured_modeling.ipynb
-│   ├── 07_multimodal_modeling.ipynb
-│   └── 08_shap.ipynb
+├── 📓 code/
+│   ├── 01_clean_build_cohort.ipynb  # data merging & cleaning
+│   ├── 02_clean_vitals_24h.ipynb    # Vitals feature engineering
+│   ├── 03_clean_labs_24h.ipynb      # Labs feature engineering
+│   ├── 04_EDA.ipynb                 # Exploratory Data Analysis
+│   ├── 05_notes_24h_nursing.ipynb   # Text alignment & preprocessing
+│   ├── 06_clinbert_embeddings.ipynb # Bio_ClinicalBERT embedding logic
+│   ├── 07_structured_modeling.ipynb # Baseline XGBoost models
+│   └── 08_multimodal_modeling.ipynb # Late fusion experiments
 ├── figures/
 │   ├── roc_overall.png
 │   ├── pr_overall.png

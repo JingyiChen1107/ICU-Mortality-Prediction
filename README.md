@@ -18,16 +18,6 @@ The evaluation uses patient-level group splitting (SUBJECT_ID) to avoid leakage 
 * **Robust Evaluation:** Implements **Patient-level Group Splitting** (`SUBJECT_ID`) to prevent data leakage—ensuring the model generalizes to new patients.
 * **Interpretability:** Uses **SHAP** values to decode model decisions for clinical transparency.
   
----
-
-## View the Reports (HTML)
-
-For easy viewing, the rendered HTML reports for each step are available in the `/html/` folders.
-
-* **[Phase 1: Data Cleaning (HTML)](https://github.com/JingyiChen1107/ICU-Mortality-Prediction/blob/main/html_reports/02_data_cleaning.html)**
-* **[Phase 2: Exploratory Data Analysis (HTML)](https://github.com/JingyiChen1107/ICU-Mortality-Prediction/blob/main/html_reports/03_EDA.html)**
-* **[Phase 3: Feature Selection and Engineering (HTML)](https://github.com/JingyiChen1107/ICU-Mortality-Prediction/blob/main/html_reports/04_Feature_Selection_and_Engineering.html)**
-* **[Phase 4: Modeling and Experiments (HTML)](https://github.com/JingyiChen1107/ICU-Mortality-Prediction/blob/main/html_reports/05_Modeling_and_Experiments.html)**
 
 ---
 
